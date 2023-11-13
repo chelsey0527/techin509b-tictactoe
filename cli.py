@@ -1,47 +1,66 @@
-# cli.py
-from logic import make_empty_board, is_valid_move, make_move, check_winner, is_draw
+# game.py
+from logic import TicTacToeBoard
+import random
 
-def display_board(board):
-    for row in board:
-        print(' '.join(row))
+class TicTacToeGame:
+    def __init__(self, num_players, player_input):
+        self.board = TicTacToeBoard()
+        self.playerFlag = True  # True = O, False = X
+        self.num_players = num_players
+        self.player_input = player_input
 
-def main():
-    while True:
-        board = make_empty_board()
-        playerFlag = True  # True = O, False = X
+    def display_board(self):
+        self.board.display_board()
 
+    def get_bot_move(self):
+        # Generate random coordinates for the bot's move
+        movePositionX = random.randint(0, 2)
+        movePositionY = random.randint(0, 2)
+        return movePositionX, movePositionY
+
+    def play(self):
         while True:
             print("Current Game Board:")
-            display_board(board)
+            self.display_board()
 
             print('- - - - - - - - - - - - - - - - - - - - - - - - - - -')
-            movePositionX = int(input('Enter the X position you want to put: '))
-            movePositionY = int(input('Enter the Y position you want to put: '))
 
-            if is_valid_move(board, movePositionX, movePositionY):
-                if make_move(board, movePositionX, movePositionY, playerFlag):
-                    if playerFlag:
+            if self.playerFlag or self.num_players == 2:  # Allow player input or for two players
+                movePositionX, movePositionY = self.player_input()
+            else:  # Bot's turn
+                movePositionX, movePositionY = self.get_bot_move()
+                print(f'Bot chooses X = {movePositionX}, Y = {movePositionY}')
+
+            if self.board.is_valid_move(movePositionX, movePositionY):
+                if self.board.make_move(movePositionX, movePositionY, self.playerFlag):
+                    if self.playerFlag:
                         print("This is O's turn")
                     else:
                         print("This is X's turn")
 
-                    winner = check_winner(board)
+                    winner = self.board.check_winner()
                     if winner:
                         print(winner, ' won')
                         break
-                    elif is_draw(board):
+                    elif self.board.is_draw():
                         print('Draw')
                         break
 
-                    playerFlag = not playerFlag  # Switch player's turn
+                    self.playerFlag = not self.playerFlag  # Switch player's turn
                 else:
-                    print("Invalid move. Try again.")
+                    print(" ****** Invalid move. Try again. ****** ")
             else:
-                print("Invalid position. X and Y must be between 0 and 2.")
+                print("Invalid position. X and Y must be between 0 and 2")
 
-        play_again = input("Play again? (yes/no): ")
-        if play_again.lower() != "yes":
-            break
+def user_input():
+    movePositionX = int(input('Enter the X position you want to put: '))
+    movePositionY = int(input('Enter the Y position you want to put: '))
+    return movePositionX, movePositionY
 
 if __name__ == '__main__':
-    main()
+    num_players = int(input("Enter the number of players (1 or 2): "))
+    if num_players not in [1, 2]:
+        print("Invalid number of players. Please choose 1 or 2.")
+    else:
+        game = TicTacToeGame(num_players, user_input)
+        game.play()
