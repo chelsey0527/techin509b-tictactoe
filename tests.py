@@ -34,5 +34,18 @@ class TicTacToeTests(unittest.TestCase):
                  ['O', 'X', 'O']]
         self.assertTrue(is_draw(board))
 
+    def test_immediate_win(self):
+        board = [['X', 'O', 'X'],
+                ['', 'O', ''],
+                ['', '', '']]
+        self.assertEqual(check_winner(board), 'O')
+
+    def test_draw_on_last_move(self):
+        board = [['X', 'O', 'X'],
+                ['O', 'X', 'O'],
+                ['O', 'X', '']]
+        self.assertFalse(is_draw(board))
+
+
 if __name__ == '__main__':
     unittest.main()
