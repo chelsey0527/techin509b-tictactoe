@@ -1,4 +1,5 @@
-# game.py
+# cli.py
+import csv
 from logic import TicTacToeBoard
 import random
 
@@ -8,6 +9,8 @@ class TicTacToeGame:
         self.playerFlag = True  # True = O, False = X
         self.num_players = num_players
         self.player_input = player_input
+        self.winner = None
+        self.game_data = []
 
     def display_board(self):
         self.board.display_board()
@@ -17,6 +20,17 @@ class TicTacToeGame:
         movePositionX = random.randint(0, 2)
         movePositionY = random.randint(0, 2)
         return movePositionX, movePositionY
+
+    def record_game_data(self, movePositionX, movePositionY):
+        player = 'O' if self.playerFlag else 'X'
+        self.winner = self.board.check_winner()  # Update the winner before recording the data
+
+        self.game_data.append({
+            'Player': player,
+            'MoveX': movePositionX,
+            'MoveY': movePositionY,
+            'Winner': self.winner
+        })
 
     def play(self):
         while True:
@@ -38,19 +52,34 @@ class TicTacToeGame:
                     else:
                         print("This is X's turn")
 
-                    winner = self.board.check_winner()
-                    if winner:
-                        print(winner, ' won')
+                    self.playerFlag = not self.playerFlag  # Switch player's turn
+
+                    self.winner = self.board.check_winner()
+                    if self.winner:
+                        print(self.winner, ' won')
+                        self.record_game_data(movePositionX, movePositionY)  # Record after determining the winner
                         break
                     elif self.board.is_draw():
                         print('Draw')
+                        self.record_game_data(movePositionX, movePositionY)  # Record after determining a draw
                         break
-
-                    self.playerFlag = not self.playerFlag  # Switch player's turn
+                    else:
+                        self.record_game_data(movePositionX, movePositionY)  # Record after a valid move
                 else:
                     print(" ****** Invalid move. Try again. ****** ")
             else:
                 print("Invalid position. X and Y must be between 0 and 2")
+
+        # Save the final state of the game after it's finished
+        self.save_game_data()
+
+    def save_game_data(self):
+        with open('logs/game_data.csv', mode='a', newline='') as file:
+            fieldnames = ['Player', 'MoveX', 'MoveY', 'Winner']
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            if file.tell() == 0:  # Check if the file is empty
+                writer.writeheader()
+            writer.writerows(self.game_data)
 
 def user_input():
     movePositionX = int(input('Enter the X position you want to put: '))
@@ -64,3 +93,4 @@ if __name__ == '__main__':
     else:
         game = TicTacToeGame(num_players, user_input)
         game.play()
+        game.save_game_data()
